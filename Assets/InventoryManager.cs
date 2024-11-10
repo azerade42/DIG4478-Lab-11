@@ -30,7 +30,7 @@ public class InventoryManager : MonoBehaviour
         for (int i = 0; i < numInventoryItems; i++)
         {
             Vector3 itemPos = new Vector3(xPos * spacing, yPos * spacing, 0);
-            InventoryItem newItem = Instantiate(item, itemPos, Quaternion.identity).GetComponent<InventoryItem>();
+            InventoryItem newItem = Instantiate(item, itemPos, Quaternion.identity, transform).GetComponent<InventoryItem>();
 
             int itemID = i;
             string itemName = GenerateRandomString(10);
@@ -110,6 +110,8 @@ public class InventoryManager : MonoBehaviour
 
     public InventoryItem BinarySearchByID(int ID)
     {
+        SortInventoryByID();
+
         int low = 0;
         int high = inventory.Count - 1;
 
@@ -134,7 +136,7 @@ public class InventoryManager : MonoBehaviour
         return null;
     }
 
-    public int Partition(int first, int last)
+    private int Partition(int first, int last)
     {
         int pivot = inventory[last].Value;
         int smaller = first - 1;
@@ -158,8 +160,6 @@ public class InventoryManager : MonoBehaviour
         return smaller + 1;
     }
 
-    public void QuickSortInventory() => QuickSortByValue(0, inventory.Count - 1);
-
     private void QuickSortByValue(int first, int last)
     {
         if (first < last)
@@ -169,6 +169,19 @@ public class InventoryManager : MonoBehaviour
             QuickSortByValue(first, pivot - 1);
             QuickSortByValue(pivot + 1, last);
         }
+
+    }
+
+    public void SortInventoryByValue()
+    {
+        QuickSortByValue(0, inventory.Count - 1);
+        
+        RepositionInventory();
+    }
+
+    private void SortInventoryByID()
+    {
+        inventory = inventory.OrderBy(x => x.ID).ToList();
 
         RepositionInventory();
     }

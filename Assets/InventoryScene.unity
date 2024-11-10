@@ -337,11 +337,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21440ebba152b1e418efd0c34ef89a7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numInventoryItems: 15
-  rowLength: 5
-  spacing: 2
+  numInventoryItems: 100
+  rowLength: 10
+  spacing: 1
   item: {fileID: 3319097915656933124, guid: 11fb3dc6094475645bc7ccd1743b97c3, type: 3}
   InvItemName: 
+  InvItemID: 0
 --- !u!4 &1979888923
 Transform:
   m_ObjectHideFlags: 0
