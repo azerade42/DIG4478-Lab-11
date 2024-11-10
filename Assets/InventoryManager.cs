@@ -12,24 +12,14 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] float spacing;
     [SerializeField] private InventoryItem item;
 
+    [HideInInspector] public string InvItemName;
+    [HideInInspector] public int InvItemID;
+
     private List<InventoryItem> inventory = new List<InventoryItem>();
 
     private void Start()
     {
         GenerateRandomInventory();
-
-        print(PrintAllValues());
-        
-        // print(BinarySearchByID(0));
-
-        // randomly shuffles inventory in memory but not visually
-        inventory = inventory.OrderBy(x => Random.value).ToList();
-
-        print(PrintAllValues());
-
-        QuickSortByValue(inventory[0].Value, inventory[inventory.Count - 1].Value);
-
-        print(PrintAllValues());
     }
 
     public void GenerateRandomInventory()
@@ -39,22 +29,58 @@ public class InventoryManager : MonoBehaviour
 
         for (int i = 0; i < numInventoryItems; i++)
         {
-            if (xPos++ > rowLength)
-            {
-                yPos++;
-                xPos = 0;
-            }
-
             Vector3 itemPos = new Vector3(xPos * spacing, yPos * spacing, 0);
             InventoryItem newItem = Instantiate(item, itemPos, Quaternion.identity).GetComponent<InventoryItem>();
 
             int itemID = i;
             string itemName = GenerateRandomString(10);
             int itemValue = Random.Range(0, 100);
+            newItem.gameObject.GetComponent<Renderer>().material.SetColor("_Color", new Color(itemValue*0.01f, itemValue*0.01f, itemValue*0.01f));
 
             newItem.OnInstantiate(itemID, itemName, itemValue);
             inventory.Add(newItem);
+
+            if (++xPos > rowLength - 1)
+            {
+                yPos--;
+                xPos = 0;
+            }
         }
+    }
+
+    public void ShuffleInventory()
+    {
+        inventory = inventory.OrderBy(x => Random.value).ToList();
+        RepositionInventory();
+    }
+
+    public void RepositionInventory()
+    {
+        int xPos = 0;
+        int yPos = 0;
+
+        foreach (InventoryItem item in inventory)
+        {
+            Vector3 itemPos = new Vector3(xPos * spacing, yPos * spacing, 0);
+            item.transform.position = itemPos;
+
+            if (++xPos > rowLength - 1)
+            {
+                yPos--;
+                xPos = 0;
+            }
+        }
+    }
+
+    public void RegenerateInventory()
+    {
+        foreach (InventoryItem item in inventory)
+        {
+            Destroy(item.gameObject);
+        }
+        
+        inventory.Clear();
+        GenerateRandomInventory();
     }
 
     public string GenerateRandomString(int length)
@@ -71,18 +97,18 @@ public class InventoryManager : MonoBehaviour
         return str.ToString();
     }
 
-    private InventoryItem LinearSearchByName(string itemName)
+    public InventoryItem LinearSearchByName(string itemName)
     {
         foreach (InventoryItem item in inventory)
         {
-            if (item.name == itemName)
+            if (item.Name.CompareTo(itemName) == 0)
                 return item;
         }
 
         return null;
     }
 
-    private InventoryItem BinarySearchByID(int ID)
+    public InventoryItem BinarySearchByID(int ID)
     {
         int low = 0;
         int high = inventory.Count - 1;
@@ -90,7 +116,6 @@ public class InventoryManager : MonoBehaviour
         while (low <= high)
         {
             int mid = low + (high - low) / 2;
-            print(inventory[mid].ID);
 
             if (inventory[mid].ID == ID)
             {
@@ -118,22 +143,24 @@ public class InventoryManager : MonoBehaviour
         {
             if (inventory[element].Value < pivot)
             {
-                element++;
+                smaller++;
 
-                int temporary = inventory[smaller].Value;
+                InventoryItem temporary = inventory[smaller];
                 inventory[smaller] = inventory[element];
-                inventory[element].Value = temporary;
+                inventory[element] = temporary;
             }
         }
 
-        int temporaryNext = inventory[smaller + 1].Value;
+        InventoryItem temporaryNext = inventory[smaller + 1];
         inventory[smaller + 1] = inventory[last];
-        inventory[last].Value = temporaryNext;
+        inventory[last] = temporaryNext;
 
         return smaller + 1;
     }
 
-    public void QuickSortByValue(int first, int last)
+    public void QuickSortInventory() => QuickSortByValue(0, inventory.Count - 1);
+
+    private void QuickSortByValue(int first, int last)
     {
         if (first < last)
         {
@@ -141,8 +168,9 @@ public class InventoryManager : MonoBehaviour
 
             QuickSortByValue(first, pivot - 1);
             QuickSortByValue(pivot + 1, last);
-
         }
+
+        RepositionInventory();
     }
 
     public string PrintAllValues()
